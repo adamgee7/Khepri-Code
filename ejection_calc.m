@@ -8,10 +8,22 @@ function [time,h_max,arc_length,lateral_length] = ejection_calc(alpha,v)
 
 if v > 0.204 
     sprintf("Retry with a smaller speed. This particle escapes.")
+    time = NaN;
+    h_max = NaN;
+    arc_length = NaN;
+    lateral_length = NaN;
 elseif alpha == 90
     sprintf("Retry with a smaller angle. This particle cannot be ejected.")
+    time = NaN;
+    h_max = NaN;
+    arc_length = NaN;
+    lateral_length = NaN;
 elseif alpha == 0
     sprintf("Retry with a larger angle. This particle cannot be ejected.")
+    time = NaN;
+    h_max = NaN;
+    arc_length = NaN;
+    lateral_length = NaN;
 else
     % Constants and Parameters
     r_Bennu = 245.03; %m from Wikipedia
