@@ -5,8 +5,13 @@ function [time,h_max,arc_length,lateral_length] = ejection_calc(alpha,v)
 % ejected at (in degrees); v is the ejection velocity (initial velocity) in
 % m/s, arc_length and lateral_length are the respective lengths in m
 %Outputs: time in seconds, maximum height of the projectile
-if v > 0.204
+
+if v > 0.204 
     sprintf("Retry with a smaller speed. This particle escapes.")
+elseif alpha == 90
+    sprintf("Retry with a smaller angle. This particle cannot be ejected.")
+elseif alpha == 0
+    sprintf("Retry with a larger angle. This particle cannot be ejected.")
 else
     % Constants and Parameters
     r_Bennu = 245.03; %m from Wikipedia
