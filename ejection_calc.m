@@ -1,10 +1,12 @@
-function [time,h_max,arc_length,lateral_length] = ejection_calc(alpha,v)
+function [time,h_max,peak_speed,arc_length,lateral_length] = ejection_calc(alpha,v)
 % PLEASE READ INPUTS BEFORE USE
 
 %Inputs: alpha is the angle relative to the surface that the particle is 
 % ejected at (in degrees); v is the ejection velocity (initial velocity) in
-% m/s, arc_length and lateral_length are the respective lengths in m
-%Outputs: time in seconds, maximum height of the projectile
+% m/s, peak_speed is the speed at the max heigh in m/s, arc_length and 
+% lateral_length are the respective lengths in m
+
+% Outputs: time in seconds, maximum height of the projectile
 
 % Constants and Parameters
 r_Bennu = 245.03; %m from Wikipedia
@@ -24,6 +26,7 @@ if v > sqrt(2*mu/r_Bennu)
     time = NaN;
     arc_length = NaN;
     lateral_length = NaN;
+    peak_speed = NaN;
     
     %Plotting
     theta_circle = 0:0.01:2*pi;
@@ -44,20 +47,23 @@ elseif alpha == 90
     h_max = NaN;
     arc_length = NaN;
     lateral_length = NaN;
+    peak_speed = NaN;
 elseif alpha == 0
     sprintf("Retry with a larger angle. This particle cannot be ejected.")
     time = NaN;
     h_max = NaN;
     arc_length = NaN;
     lateral_length = NaN;
+    peak_speed = NaN;
 else
     a = h^2/mu*1/(1-e^2);
     r_a = a*(1+e);
     h_max = r_a-r_Bennu;
-    E = 2*atan(sqrt((1-e)/(e+1))*tan(theta/2*pi/180));
+    E = 2*atan2(sqrt(1-e)*sin(theta/2*pi/180),sqrt(e+1)*cos(theta/2*pi/180));
     M_e = E-e*sin(E);
     time = h^3/mu^2/sqrt(1-e^2)^3*M_e*2; %times 2 for projectile, seems awfully short.... ? or else backwards?
-    
+    peak_speed = mu/h*(1-e);
+
     fun = @(x) a*sqrt(1-e^2.*cos(x).^2);
     arc_length = integral(fun,theta,2*pi-theta);
     lateral_length = r_Bennu*sin(pi-theta)*2;
