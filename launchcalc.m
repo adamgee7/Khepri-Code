@@ -15,7 +15,7 @@ if n == 1 %single-stage
     delta_v = u_eq*log(R); %(m/s)
 else %multi-stage
         for i=1:n
-            delta_v = delta_v + u_eq(i) + log(R(i));
+            delta_v = delta_v + u_eq(i)*log(R(i));
         end
 end
 
