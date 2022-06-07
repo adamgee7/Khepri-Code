@@ -1,8 +1,10 @@
-function [delta_v, m_fuel, delta_energy, time, orbit, orbital_period] = bennu2orbit(height,mode,mf,theta2,plot_cond) 
+function [delta_v, m_fuel, delta_energy, time, orbit, orbital_period] = bennu2orbit(height,mode,mf,theta2,plot_cond,Isp) 
 % PLEASE READ INPUTS BEFORE USE
 
 %Inputs: height above surface; mode = hohmann, non-hohmann/hyperbolic, 
-%escape or lob; theta1 = angle of departure for non-hohmann
+%escape or lob; theta2 = angle of departure for non-hohmann, plot_cond = 1
+%to plot or anything else otherwise, Isp in s is specific impulse to find amount
+%of fuel
 %Outputs: Delta-v in m/s, specific change in energy in J, transit time in 
 %hours, orbit type
 
@@ -211,7 +213,7 @@ if r2 < r_H
             legend([hpp1(1),hpp2(1)],'Bennu','Lob Orbit')
         end
     end
-m_fuel = rocket_equation(delta_v,mf);
+m_fuel = rocket_equation(delta_v,mf,Isp);
 else
     sprintf("Outside of Bennu's gravitational sphere of influence (Hill Sphere). Try a smaller height.")
     delta_v = NaN;
