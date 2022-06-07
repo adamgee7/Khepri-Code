@@ -1,4 +1,4 @@
-function [delta_v, delta_energy, time, orbit] = bennu2orbit(height,mode,theta2) 
+function [delta_v, m_fuel, delta_energy, time, orbit, orbital_period] = bennu2orbit(height,mode,mf,theta2,plot_cond) 
 % PLEASE READ INPUTS BEFORE USE
 
 %Inputs: height above surface; mode = hohmann, non-hohmann/hyperbolic, 
@@ -24,6 +24,7 @@ M_Sun = 1.989 * 10^30;
 % Orbital Maneuver Calculations
 r1 = r_Bennu;
 r2 = r_Bennu+height;
+orbital_period = 2*pi/sqrt(mu)*((r2+r1)/2)^(3/2)/3600;
 r_H = a_Bennu*(M_Bennu/(3*M_Sun))^(1/3); %Hill sphere radius around Bennu in m
 if r2 < r_H
     % Two impulse maneuvers
@@ -44,21 +45,23 @@ if r2 < r_H
         orbit = "elliptic";
 
         %Plotting
-        theta_circle = 0:0.01:2*pi;
-        r1_circle = r1*ones(length(theta_circle));
-        r2_circle = r2*ones(length(theta_circle));
-        theta_Hohmann = 0:0.01:pi;
-        e_Hohmann = (r2-r1)/(r1+r2);
-        a_Hohmann = r2/(1+e_Hohmann);
-        r_Hohmann = a_Hohmann*(1-e_Hohmann^2)./(1+e_Hohmann*cos(theta_Hohmann));
-
-        hpp1 = polarplot(theta_circle,r1_circle,'r');
-        hold on
-        hpp2 = polarplot(theta_circle,r2_circle,'b');
-        hpp3 = polarplot(theta_Hohmann,r_Hohmann,'k');
-        %legend('Bennu','Final Orbit')
-        hold off
-        legend([hpp1(1),hpp2(1),hpp3(1)],'Bennu','Orbit','Transfer')
+        if plot_cond == 1
+            theta_circle = 0:0.01:2*pi;
+            r1_circle = r1*ones(length(theta_circle));
+            r2_circle = r2*ones(length(theta_circle));
+            theta_Hohmann = 0:0.01:pi;
+            e_Hohmann = (r2-r1)/(r1+r2);
+            a_Hohmann = r2/(1+e_Hohmann);
+            r_Hohmann = a_Hohmann*(1-e_Hohmann^2)./(1+e_Hohmann*cos(theta_Hohmann));
+    
+            hpp1 = polarplot(theta_circle,r1_circle,'r');
+            hold on
+            hpp2 = polarplot(theta_circle,r2_circle,'b');
+            hpp3 = polarplot(theta_Hohmann,r_Hohmann,'k');
+            %legend('Bennu','Final Orbit')
+            hold off
+            legend([hpp1(1),hpp2(1),hpp3(1)],'Bennu','Orbit','Transfer')
+        end
 
     end
     if mode == "Non-Hohmann" 
@@ -71,7 +74,7 @@ if r2 < r_H
             fpa_1 = 0;
             
             %Transfer Orbit
-            e_transfer = (r2-r1)/(r1*cos(theta1*pi/180)-r2*cos(theta2*pi/180))
+            e_transfer = (r2-r1)/(r1*cos(theta1*pi/180)-r2*cos(theta2*pi/180));
             h_transfer = sqrt(mu*r1*r2)*sqrt((cos(theta2*pi/180)-cos(theta1*pi/180))/(r2*cos(theta2*pi/180)-r1*cos(theta1*pi/180)));
             v_r_transfer_1 = mu/h_transfer*e_transfer*sin(theta1*pi/180);
             v_n_transfer_1 = mu/h_transfer*(1+e_transfer*cos(theta1*pi/180));
@@ -106,39 +109,43 @@ if r2 < r_H
                 time = h_transfer^3/mu^2/sqrt(1-e_transfer^2)^3*M_e/3600;
                 orbit = "elliptic";
                 
-                %Plotting
-                theta_circle = 0:0.01:2*pi;
-                r1_circle = r1*ones(length(theta_circle));
-                r2_circle = r2*ones(length(theta_circle));
-                theta_NonHohmann = 0:0.01:theta2*pi/180;
-                a_NonHohmann = r1/(1-e_transfer);
-                r_NonHohmann = a_NonHohmann*(1-e_transfer^2)./(1+e_transfer*cos(theta_NonHohmann));
-        
-                hpp1 = polarplot(theta_circle,r1_circle,'r');
-                hold on
-                hpp2 = polarplot(theta_circle,r2_circle,'b');
-                hpp3 = polarplot(theta_NonHohmann,r_NonHohmann,'k');
-                legend([hpp1(1),hpp2(1),hpp3(1)],'Bennu','Orbit','Transfer')
+                if plot_cond == 1
+                    %Plotting
+                    theta_circle = 0:0.01:2*pi;
+                    r1_circle = r1*ones(length(theta_circle));
+                    r2_circle = r2*ones(length(theta_circle));
+                    theta_NonHohmann = 0:0.01:theta2*pi/180;
+                    a_NonHohmann = r1/(1-e_transfer);
+                    r_NonHohmann = a_NonHohmann*(1-e_transfer^2)./(1+e_transfer*cos(theta_NonHohmann));
+            
+                    hpp1 = polarplot(theta_circle,r1_circle,'r');
+                    hold on
+                    hpp2 = polarplot(theta_circle,r2_circle,'b');
+                    hpp3 = polarplot(theta_NonHohmann,r_NonHohmann,'k');
+                    legend([hpp1(1),hpp2(1),hpp3(1)],'Bennu','Orbit','Transfer')
+                end
 
             elseif e_transfer > 1
                 E_bar = 2*atanh(sqrt((e_transfer-1)/(e_transfer+1))*tan(theta2/2*pi/180));
                 M_h = e_transfer*sinh(E_bar)-E_bar;
                 time = h_transfer^3/mu^2/sqrt(e_transfer^2-1)^3*M_h/3600;
                 orbit = "hyperbolic";
-
-                %Plotting
-                theta_circle = 0:0.01:2*pi;
-                r1_circle = r1*ones(length(theta_circle));
-                r2_circle = r2*ones(length(theta_circle));
-                theta_NonHohmann = 0:0.01:theta2*pi/180;
-                a_NonHohmann = r1/(e_transfer-1);
-                r_NonHohmann = a_NonHohmann*(e_transfer^2-1)./(1+e_transfer*cos(theta_NonHohmann));
-        
-                hpp1 = polarplot(theta_circle,r1_circle,'r');
-                hold on
-                hpp2 = polarplot(theta_circle,r2_circle,'b');
-                hpp3 = polarplot(theta_NonHohmann,r_NonHohmann,'k');
-                legend([hpp1(1),hpp2(1),hpp3(1)],'Bennu','Orbit','Transfer')
+                
+                if plot_cond == 1
+                    %Plotting
+                    theta_circle = 0:0.01:2*pi;
+                    r1_circle = r1*ones(length(theta_circle));
+                    r2_circle = r2*ones(length(theta_circle));
+                    theta_NonHohmann = 0:0.01:theta2*pi/180;
+                    a_NonHohmann = r1/(e_transfer-1);
+                    r_NonHohmann = a_NonHohmann*(e_transfer^2-1)./(1+e_transfer*cos(theta_NonHohmann));
+            
+                    hpp1 = polarplot(theta_circle,r1_circle,'r');
+                    hold on
+                    hpp2 = polarplot(theta_circle,r2_circle,'b');
+                    hpp3 = polarplot(theta_NonHohmann,r_NonHohmann,'k');
+                    legend([hpp1(1),hpp2(1),hpp3(1)],'Bennu','Orbit','Transfer')
+                end
 
             elseif e_transfer < 0
                 sprintf("Retry with a larger angle but less than 180 degrees. This angle deparature is impossible.")
@@ -164,20 +171,22 @@ if r2 < r_H
         time = NaN;
         delta_energy = v2^2/2-v1^2/2;
         orbit = "hyperbolic";
-
-        %Plotting
-        e_escape = 1.00001; %This is a function of the ejection speed
-        a_escape = r1/(e_escape-1);
-        v_hyp = sqrt(mu*(1+2*e_escape+e_escape^2)/(a_escape*(e_escape^2-1)));
-        theta_circle = 0:0.01:2*pi;
-        r1_circle = r1*ones(length(theta_circle));
-        theta_escape = 0:0.01:100*pi/180;
-        r_escape = a_escape*(e_escape^2-1)./(1+e_escape*cos(theta_escape));
-
-        hpp1 = polarplot(theta_circle,r1_circle,'r');
-        hold on
-        hpp2 = polarplot(theta_escape,r_escape,'k');
-        legend([hpp1(1),hpp2(1)],'Bennu','Escape Trajectory')
+        
+        if plot_cond == 1
+            %Plotting
+            e_escape = 1.00001; %This is a function of the ejection speed
+            a_escape = r1/(e_escape-1);
+            v_hyp = sqrt(mu*(1+2*e_escape+e_escape^2)/(a_escape*(e_escape^2-1)));
+            theta_circle = 0:0.01:2*pi;
+            r1_circle = r1*ones(length(theta_circle));
+            theta_escape = 0:0.01:100*pi/180;
+            r_escape = a_escape*(e_escape^2-1)./(1+e_escape*cos(theta_escape));
+    
+            hpp1 = polarplot(theta_circle,r1_circle,'r');
+            hold on
+            hpp2 = polarplot(theta_escape,r_escape,'k');
+            legend([hpp1(1),hpp2(1)],'Bennu','Escape Trajectory')
+        end
 
     end
     if mode == "Lob"
@@ -188,20 +197,21 @@ if r2 < r_H
         delta_energy = v2^2/2-v1^2/2;
         time = pi/sqrt(mu)*((r2+r1)/2)^(3/2)/3600;
         orbit = "elliptic";
-
-        %Plotting
-        theta_circle = 0:0.01:2*pi;
-        r1_circle = r1*ones(length(theta_circle));
-        a_Lob = r1/(1-e);
-        r_Lob = a_Lob*(1-e^2)./(1+e*cos(theta_circle));
-
-        hpp1 = polarplot(theta_circle,r1_circle,'r');
-        hold on
-        hpp2 = polarplot(theta_circle,r_Lob,'k');
-        legend([hpp1(1),hpp2(1)],'Bennu','Lob Orbit')
-
+        
+        if plot_cond == 1
+            %Plotting
+            theta_circle = 0:0.01:2*pi;
+            r1_circle = r1*ones(length(theta_circle));
+            a_Lob = r1/(1-e);
+            r_Lob = a_Lob*(1-e^2)./(1+e*cos(theta_circle));
+    
+            hpp1 = polarplot(theta_circle,r1_circle,'r');
+            hold on
+            hpp2 = polarplot(theta_circle,r_Lob,'k');
+            legend([hpp1(1),hpp2(1)],'Bennu','Lob Orbit')
+        end
     end
-
+m_fuel = rocket_equation(delta_v,mf);
 else
     sprintf("Outside of Bennu's gravitational sphere of influence (Hill Sphere). Try a smaller height.")
     delta_v = NaN;
